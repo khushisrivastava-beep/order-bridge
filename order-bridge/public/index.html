@@ -121,6 +121,22 @@ tr.sel td{background:#E6F1FB!important}
   border-top-color:#1a1a18;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading p{font-size:13px;color:#5f5e5a}
+
+#login-gate{position:fixed;inset:0;background:#f0efe9;display:flex;align-items:center;
+  justify-content:center;z-index:99999;flex-direction:column;gap:0}
+#login-box{background:#fff;border-radius:16px;padding:40px 44px;width:340px;
+  box-shadow:0 2px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:20px}
+#login-box h2{font-size:17px;font-weight:600;color:#1a1a18;margin:0;letter-spacing:-.3px}
+#login-box p{font-size:12.5px;color:#888780;margin:0;margin-top:-12px}
+#login-pw{width:100%;box-sizing:border-box;padding:10px 13px;border:1px solid #d1d0ca;
+  border-radius:8px;font-size:13.5px;font-family:inherit;outline:none;
+  transition:border .15s;background:#fafaf8}
+#login-pw:focus{border-color:#1a1a18}
+#login-btn{width:100%;padding:11px;background:#1a1a18;color:#fff;border:none;
+  border-radius:8px;font-size:13.5px;font-weight:600;font-family:inherit;
+  cursor:pointer;transition:opacity .15s}
+#login-btn:hover{opacity:.85}
+#login-err{font-size:12px;color:#E24B4A;text-align:center;min-height:16px;margin-top:-8px}
 </style>
 </head>
 <body>
@@ -128,6 +144,19 @@ tr.sel td{background:#E6F1FB!important}
     <span id="view-subtitle" style="margin-left:12px;font-size:11.5px;color:#888780"></span>
   </div>
 </div>
+
+<div id="login-gate">
+  <div id="login-box">
+    <div>
+      <h2>Order Bridge</h2>
+      <p>1mg Diagnostics · Internal Dashboard</p>
+    </div>
+    <input id="login-pw" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="login-err"></div>
+    <button id="login-btn" onclick="checkPw()">Sign in</button>
+  </div>
+</div>
+
 <div id="loading"><div class="spin"></div><p>Loading…</p></div>
 <div style="background:#fff;border-bottom:.5px solid rgba(0,0,0,.1);position:sticky;top:0;z-index:100">
   <div style="max-width:1200px;margin:0 auto;padding:0 18px;display:flex;gap:0;align-items:center">
@@ -845,6 +874,36 @@ function switchView(view){
     console.error(err);
   }
 })();
+
+(function(){
+  // Change the password below to whatever you want
+  var PW = 'Bridge@1mg';
+  var KEY = 'ob_auth';
+
+  function checkPw(){
+    var val = document.getElementById('login-pw').value;
+    if(val === PW){
+      sessionStorage.setItem(KEY, '1');
+      document.getElementById('login-gate').style.display = 'none';
+    } else {
+      var err = document.getElementById('login-err');
+      err.textContent = 'Incorrect password. Try again.';
+      document.getElementById('login-pw').value = '';
+      document.getElementById('login-pw').focus();
+      setTimeout(function(){ err.textContent=''; }, 3000);
+    }
+  }
+  window.checkPw = checkPw;
+
+  // If already authenticated this session, skip login
+  if(sessionStorage.getItem(KEY) === '1'){
+    document.addEventListener('DOMContentLoaded', function(){
+      var gate = document.getElementById('login-gate');
+      if(gate) gate.style.display = 'none';
+    });
+  }
+})();
+
 </script>
 </body>
 </html>
