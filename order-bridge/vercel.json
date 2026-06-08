@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/login",    "destination": "/api/login.js" },
+    { "source": "/api/callback", "destination": "/api/callback.js" },
+    { "source": "/api/session",  "destination": "/api/session.js" },
+    { "source": "/(.*)",         "destination": "/public/$1" }
   ],
   "headers": [
     {
