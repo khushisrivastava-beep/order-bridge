@@ -260,25 +260,36 @@ tr.sel td{background:#E6F1FB!important}
 
 <script>
 
-// Google OAuth session check
+// Google OAuth session check — runs BEFORE anything else renders
 (async function authCheck(){
+  // Keep loading screen visible until auth confirmed
+  const loadingEl = document.getElementById('loading');
+  if(loadingEl) loadingEl.style.display = 'flex';
+
+  // Hide the main page content until auth passes
+  const pageEl = document.querySelector('.page');
+  if(pageEl) pageEl.style.visibility = 'hidden';
+
   const params = new URLSearchParams(window.location.search);
   if(params.get('error') === 'unauthorized'){
-    document.getElementById('loading').innerHTML =
+    if(loadingEl) loadingEl.innerHTML =
       '<p style="color:#E24B4A;font-size:14px;max-width:360px;text-align:center">Access restricted to @1mg.com accounts only.</p>'+
       '<a href="/api/login" style="margin-top:12px;padding:10px 22px;background:#1a1a18;color:#fff;border-radius:8px;font-size:13px;text-decoration:none;font-family:inherit">Try another account</a>';
     return;
   }
+
   try {
     const res = await fetch('/api/session');
-    if(res.ok){
-      const data = await res.json();
-      if(data.ok) return; // session valid — let init() proceed
+    const data = res.ok ? await res.json() : { ok: false };
+    if(data.ok){
+      // Auth passed — reveal page, let init() run
+      if(pageEl) pageEl.style.visibility = 'visible';
+      return;
     }
-    // No valid session — redirect to Google login
-    window.location.href = '/api/login';
+    // No valid session — redirect immediately
+    window.location.replace('/api/login');
   } catch(e) {
-    window.location.href = '/api/login';
+    window.location.replace('/api/login');
   }
 })();
 
