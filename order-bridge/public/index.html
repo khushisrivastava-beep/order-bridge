@@ -129,6 +129,15 @@ tr.sel td{background:#E6F1FB!important}
   </div>
 </div>
 
+<style id="auth-blocker">
+body > *:not(#auth-screen) { display: none !important; }
+</style>
+<div id="auth-screen" style="position:fixed;inset:0;background:#f0efe9;
+  display:flex;align-items:center;justify-content:center;z-index:99999">
+  <div style="width:32px;height:32px;border:3px solid #d1d0ca;
+    border-top-color:#1a1a18;border-radius:50%;animation:spin .8s linear infinite">
+  </div>
+</div>
 <div id="loading"><div class="spin"></div><p>Loading…</p></div>
 <div style="background:#fff;border-bottom:.5px solid rgba(0,0,0,.1);position:sticky;top:0;z-index:100">
   <div style="max-width:1200px;margin:0 auto;padding:0 18px;display:flex;gap:0;align-items:center">
@@ -260,37 +269,35 @@ tr.sel td{background:#E6F1FB!important}
 
 <script>
 
-// Google OAuth session check — runs BEFORE anything else renders
+// Google OAuth — block all rendering until session confirmed
 (async function authCheck(){
-  // Keep loading screen visible until auth confirmed
-  const loadingEl = document.getElementById('loading');
-  if(loadingEl) loadingEl.style.display = 'flex';
+  function unblock(){
+    var blocker = document.getElementById('auth-blocker');
+    var screen  = document.getElementById('auth-screen');
+    if(blocker) blocker.remove();
+    if(screen)  screen.remove();
+  }
 
-  // Hide the main page content until auth passes
-  const pageEl = document.querySelector('.page');
-  if(pageEl) pageEl.style.visibility = 'hidden';
-
-  const params = new URLSearchParams(window.location.search);
+  var params = new URLSearchParams(window.location.search);
   if(params.get('error') === 'unauthorized'){
-    if(loadingEl) loadingEl.innerHTML =
-      '<p style="color:#E24B4A;font-size:14px;max-width:360px;text-align:center">Access restricted to @1mg.com accounts only.</p>'+
-      '<a href="/api/login" style="margin-top:12px;padding:10px 22px;background:#1a1a18;color:#fff;border-radius:8px;font-size:13px;text-decoration:none;font-family:inherit">Try another account</a>';
+    document.getElementById('auth-screen').innerHTML =
+      '<div style="text-align:center;font-family:system-ui,sans-serif;padding:24px">' +
+      '<p style="color:#E24B4A;font-size:14px;max-width:320px;margin:0 0 16px">Access restricted to @1mg.com accounts only.</p>' +
+      '<a href="/api/login" style="padding:10px 22px;background:#1a1a18;color:#fff;border-radius:8px;font-size:13px;text-decoration:none">Try another account</a>' +
+      '</div>';
     return;
   }
 
   try {
-    const res = await fetch('/api/session');
-    const data = res.ok ? await res.json() : { ok: false };
+    var res  = await fetch('/api/session');
+    var data = res.ok ? await res.json() : { ok: false };
     if(data.ok){
-      // Auth passed — reveal page, let init() run
-      if(pageEl) pageEl.style.visibility = 'visible';
+      unblock();  // auth passed — show everything
       return;
     }
-    // No valid session — redirect immediately
-    window.location.replace('/api/login');
-  } catch(e) {
-    window.location.replace('/api/login');
-  }
+  } catch(e) {}
+
+  window.location.replace('/api/login');
 })();
 
 // ============ DATA ============
