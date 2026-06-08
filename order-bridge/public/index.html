@@ -122,6 +122,7 @@ tr.sel td{background:#E6F1FB!important}
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading p{font-size:13px;color:#5f5e5a}
 </style>
+<style>body{visibility:hidden}</style>
 </head>
 <body>
 
@@ -129,14 +130,7 @@ tr.sel td{background:#E6F1FB!important}
   </div>
 </div>
 
-<style id="auth-blocker">
-body > *:not(#auth-screen) { display: none !important; }
-</style>
-<div id="auth-screen" style="position:fixed;inset:0;background:#f0efe9;
-  display:flex;align-items:center;justify-content:center;z-index:99999">
-  <div style="width:32px;height:32px;border:3px solid #d1d0ca;
-    border-top-color:#1a1a18;border-radius:50%;animation:spin .8s linear infinite">
-  </div>
+
 </div>
 <div id="loading"><div class="spin"></div><p>Loading…</p></div>
 <div style="background:#fff;border-bottom:.5px solid rgba(0,0,0,.1);position:sticky;top:0;z-index:100">
@@ -269,34 +263,26 @@ body > *:not(#auth-screen) { display: none !important; }
 
 <script>
 
-// Google OAuth — block all rendering until session confirmed
+// Google OAuth — body is hidden via CSS until auth confirmed
 (async function authCheck(){
-  function unblock(){
-    var blocker = document.getElementById('auth-blocker');
-    var screen  = document.getElementById('auth-screen');
-    if(blocker) blocker.remove();
-    if(screen)  screen.remove();
-  }
-
   var params = new URLSearchParams(window.location.search);
   if(params.get('error') === 'unauthorized'){
-    document.getElementById('auth-screen').innerHTML =
-      '<div style="text-align:center;font-family:system-ui,sans-serif;padding:24px">' +
+    document.body.style.visibility = 'visible';
+    document.getElementById('loading').innerHTML =
+      '<div style="text-align:center;font-family:system-ui,sans-serif">' +
       '<p style="color:#E24B4A;font-size:14px;max-width:320px;margin:0 0 16px">Access restricted to @1mg.com accounts only.</p>' +
       '<a href="/api/login" style="padding:10px 22px;background:#1a1a18;color:#fff;border-radius:8px;font-size:13px;text-decoration:none">Try another account</a>' +
       '</div>';
     return;
   }
-
   try {
     var res  = await fetch('/api/session');
     var data = res.ok ? await res.json() : { ok: false };
     if(data.ok){
-      unblock();  // auth passed — show everything
+      document.body.style.visibility = 'visible'; // auth passed — show page
       return;
     }
   } catch(e) {}
-
   window.location.replace('/api/login');
 })();
 
